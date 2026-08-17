@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AL Exam Tracker - Calm Mode</title>
+    <style>
+        /* Mind-calming color palette variables */
+        :root { 
+            --bg: #111823;       /* Deep quiet ocean slate */
+            --card: #1e293b;     /* Soft mist dark gray */
+            --accent: #a7f3d0;   /* Calming soft mint green */
+            --text: #f1f5f9;     /* Off-white comfort text */
+            --text-mut: #94a3b8; /* Relaxing muted slate */
+            --box-bg: #161e2b;   /* Deep shadow wells */
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; transition: background 0.5s ease; }
+        .dashboard { width: 100%; max-width: 900px; background: var(--card); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 45px 25px; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.4); position: relative; }
+        
+        /* Subtle Corner Sound Switch */
+        .snd-mini { position: absolute; top: 20px; right: 25px; background: var(--box-bg); border: 1px solid #334155; color: var(--text-mut); font-size: 0.75rem; padding: 5px 10px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; letter-spacing: 0.05em; text-transform: uppercase; }
+        .snd-mini.on { border-color: var(--accent); color: var(--accent); background: rgba(167, 243, 208, 0.05); }
+        
+        h1 { color: var(--accent); font-weight: 400; text-transform: uppercase; font-size: calc(1.3rem + 1.2vw); margin-bottom: 6px; letter-spacing: 0.08em; }
+        .target { color: var(--text-mut); font-size: 0.95rem; margin-bottom: 30px; letter-spacing: 0.03em; }
+        
+        /* Zen Navigation Bar */
+        .tabs { display: flex; gap: 6px; background: var(--box-bg); padding: 6px; border-radius: 12px; margin-bottom: 35px; flex-wrap: wrap; border: 1px solid rgba(255,255,255,0.02); }
+        .tab-btn { flex: 1; min-width: 75px; background: transparent; border: none; color: var(--text-mut); padding: 12px; font-weight: 500; cursor: pointer; border-radius: 8px; font-size: 0.9rem; transition: all 0.2s ease; }
+        .tab-btn:hover { color: var(--text); }
+        .tab-btn.active { background: rgba(167, 243, 208, 0.15); color: var(--accent); font-weight: 600; box-shadow: inset 0 0 0 1px var(--accent); }
+        
+        .display-box { display: none; min-height: 140px; align-items: center; justify-content: center; animation: softFade 0.4s ease; }
+        .display-box.active { display: flex; }
+        
+        /* Time Grid Layout */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(95px, 1fr)); gap: 14px; width: 100%; }
+        .box { background: var(--box-bg); padding: 22px 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.03); }
+        .num { font-size: calc(1.6rem + 1.2vw); font-weight: 300; color: #ffffff; line-height: 1; font-family: monospace; }
+        .lbl { color: var(--text-mut); text-transform: uppercase; font-size: 0.7rem; margin-top: 8px; letter-spacing: 1.5px; }
+        
+        /* Massive Individual Panels */
+        .massive { font-size: calc(2rem + 3vw); font-weight: 300; color: #e2e8f0; font-family: monospace; word-break: break-all; letter-spacing: -0.01em; }
+        
+        @keyframes softFade {
+            from { opacity: 0; transform: scale(0.99); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <button id="snd" class="snd-mini" onclick="toggleSnd()"><span>🔇</span> Muted</button>
+
+    <h1>AL Exam Tracker</h1>
+    <div class="target">Target Goal &bull; August 1, 2027</div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="setTab('all')">All</button>
+        <button class="tab-btn" onclick="setTab('m')">Months</button>
+        <button class="tab-btn" onclick="setTab('d')">Days</button>
+        <button class="tab-btn" onclick="setTab('mn')">Minutes</button>
+        <button class="tab-btn" onclick="setTab('s')">Seconds</button>
+        <button class="tab-btn" onclick="setTab('ms')">Ms</button>
+    </div>
+
+    <!-- Combined View Grid -->
+    <div id="view-all" class="display-box active">
+        <div class="grid">
+            <div class="box"><div class="num" id="c-m">00</div><div class="lbl">Months</div></div>
+            <div class="box"><div class="num" id="c-d">00</div><div class="lbl">Days</div></div>
+            <div class="box"><div class="num" id="c-h">00</div><div class="lbl">Hours</div></div>
+            <div class="box"><div class="num" id="c-mn">00</div><div class="lbl">Min</div></div>
+            <div class="box"><div class="num" id="c-s">00</div><div class="lbl">Sec</div></div>
+            <div class="box"><div class="num" id="c-ms" style="color: var(--accent);">000</div><div class="lbl">Ms</div></div>
+        </div>
+    </div>
+
+    <!-- Isolated Value Views -->
+    <div id="view-m" class="display-box"><div class="massive" id="p-m">0.0000</div></div>
+    <div id="view-d" class="display-box"><div class="massive" id="p-d">0</div></div>
+    <div id="view-mn" class="display-box"><div class="massive" id="p-mn">0</div></div>
+    <div id="view-s" class="display-box"><div class="massive" id="p-s">0</div></div>
+    <div id="view-ms" class="display-box"><div class="massive" id="p-ms" style="color: var(--accent);">0</div></div>
+</div>
+
+<script>
+    const target = new Date('2027-08-01T00:00:00');
+    let sndOn = false, audioCtx = null, lastSec = -1;
+    let activeTab = 'all';
+
+    function toggleSnd() {
+        sndOn = !sndOn;
+        const b = document.getElementById('snd');
+        b.className = `snd-mini ${sndOn ? 'on' : ''}`;
+        b.innerHTML = sndOn ? '<span>🔊</span> Sound' : '<span>🔇</span> Muted';
+        if (sndOn && !audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    function playTick() {
+        if (!sndOn || !audioCtx) return;
+        let osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime); // Lower pitch for a more gentle zen wooden block sound
+        gain.gain.setValueAtTime(0.008, audioCtx.currentTime);  // Extremely soft volume output
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.04);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+    }
+
+    function setTab(tab) {
+        activeTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${tab}'`)));
+        document.querySelectorAll('.display-box').forEach(box => box.classList.toggle('active', box.id === `view-${tab}`));
+    }
+
+    function update() {
+        const now = new Date();
+        const diff = target - now;
+        if (diff <= 0) {
+            document.querySelector('.dashboard').innerHTML = "<h1>Exam Time! Good Luck!</h1>";
+            return;
+        }
+
+        const curSec = Math.floor(diff / 1000);
+        if (curSec !== lastSec) { playTick(); lastSec = curSec; }
+
+        const ms = diff % 1000;
+        const s = curSec, mn = Math.floor(s / 60), d = Math.floor(mn / 1440);
+        const rawM = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
+        
+        let cm = rawM, cd = new Date(now); cd.setMonth(cd.getMonth() + cm);
+        if (cd > target) { cm--; cd = new Date(now); cd.setMonth(cd.getMonth() + cm); }
+        const rem = target - cd;
+
+        document.getElementById('c-m').innerText = String(cm).padStart(2, '0');
+        document.getElementById('c-d').innerText = String(Math.floor(rem / 86400000)).padStart(2, '0');
+        document.getElementById('c-h').innerText = String(Math.floor((rem % 86400000) / 3600000)).padStart(2, '0');
+        document.getElementById('c-mn').innerText = String(Math.floor((rem % 3600000) / 60000)).padStart(2, '0');
+        document.getElementById('c-s').innerText = String(Math.floor((rem % 60000) / 1000)).padStart(2, '0');
+        document.getElementById('c-ms').innerText = String(ms).padStart(3, '0');
+
+        if (activeTab === 'm') document.getElementById('p-m').innerText = (s / 2592000).toFixed(4) + " M";
+        if (activeTab === 'd') document.getElementById('p-d').innerText = d.toLocaleString() + " Days";
+        if (activeTab === 'mn') document.getElementById('p-mn').innerText = mn.toLocaleString() + " Min";
+        if (activeTab === 's') document.getElementById('p-s').innerText = s.toLocaleString() + " Sec";
+        if (activeTab === 'ms') document.getElementById('p-ms').innerText = diff.toLocaleString() + " Ms";
+
+        requestAnimationFrame(update);
+    }
+
+    requestAnimationFrame(update);
+</script>
+
+</body>
+</html>
